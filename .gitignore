@@ -1,0 +1,18 @@
+# Tajemství – nikdy do repa
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+*.egg-info/
+.pytest_cache/
+
+# Pracovní a vzorová data
+work/
+tmp/
+samples/*
+!samples/README.md
