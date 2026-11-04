@@ -66,7 +66,7 @@ def process_job(job: Job, cfg: Config, c: Components) -> bool:
                  len(recon.points_xyz), time.monotonic() - t0)
         check_deadline()
 
-        settings = TrainSettings(max_gaussians=cfg.max_gaussians)
+        settings = TrainSettings(max_gaussians=cfg.max_gaussians, steps=cfg.train_steps)
         try:
             res = c.trainer.train(recon, settings, check_deadline)
         except GpuOutOfMemory:

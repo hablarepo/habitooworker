@@ -22,7 +22,7 @@ SH0_C = 0.28209479177387814  # konstanta SH stupně 0
 @dataclass(frozen=True)
 class TrainSettings:
     max_gaussians: int
-    steps: int = 7000        # [DOPLNIT] počet kroků doladit podle kvality/času na GTX 1660 Super
+    steps: int = 7000        # nastavuje TRAIN_STEPS; [DOPLNIT] doladit podle kvality/času na GTX 1660 Super
     image_scale: float = 1.0  # další zmenšení snímků při tréninku (po OOM se sníží)
     sh_degree: int = 3
 

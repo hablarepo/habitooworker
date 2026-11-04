@@ -37,3 +37,10 @@ def test_invalid_values():
         Config.from_env({**BASE, "MIN_FRAMES": "500"})
     with pytest.raises(ConfigError):
         Config.from_env({**BASE, "WORKER_MODE": "gpu"})
+
+
+def test_train_steps_default_and_override():
+    assert Config.from_env(BASE).train_steps == 7000
+    assert Config.from_env({**BASE, "TRAIN_STEPS": "100"}).train_steps == 100
+    with pytest.raises(ConfigError):
+        Config.from_env({**BASE, "TRAIN_STEPS": "0"})
