@@ -1,7 +1,7 @@
 """Ostrá fronta nad Supabase. Atomický zámek a requeue dělají SQL funkce (sql/001_*.sql)."""
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from typing import Any
 
 from .models import (
@@ -82,3 +82,21 @@ class SupabaseJobStore(JobStore):
             )
             counts[status] = int(res.count or 0)
         return counts
+
+    def videos_to_purge(self, older_than_days: int) -> list[tuple[str, str]]:
+        cutoff = (datetime.now(timezone.utc) - timedelta(days=older_than_days)).isoformat()
+        res = (
+            self._db.table(self._table)
+            .select("id, video_path")
+            .in_(COL_STATUS, [STATUS_DONE, STATUS_FAILED])
+            .is_("video_deleted_at", "null")
+            .lte(COL_FINISHED_AT, cutoff)
+            .limit(100)
+            .execute()
+        )
+        return [(str(r["id"]), str(r["video_path"])) for r in (res.data or [])]
+
+    def mark_video_deleted(self, job_id: str) -> None:
+        self._db.table(self._table).update(
+            {"video_deleted_at": datetime.now(timezone.utc).isoformat()}
+        ).eq("id", job_id).execute()
