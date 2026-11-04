@@ -44,6 +44,7 @@ class Config:
     min_frames: int
     max_image_side: int
     max_gaussians: int
+    train_steps: int
 
     @classmethod
     def from_env(cls, env: Mapping[str, str]) -> "Config":
@@ -91,6 +92,7 @@ class Config:
             min_frames=_int(env, "MIN_FRAMES", 30),
             max_image_side=_int(env, "MAX_IMAGE_SIDE", 960),
             max_gaussians=_int(env, "MAX_GAUSSIANS", 600_000),
+            train_steps=_int(env, "TRAIN_STEPS", 7000),
         )
         cfg._validate()
         return cfg
@@ -104,3 +106,5 @@ class Config:
             raise ConfigError("MAX_ATTEMPTS musí být >= 1")
         if not 1 <= self.min_frames <= self.target_frames:
             raise ConfigError("Musí platit 1 <= MIN_FRAMES <= TARGET_FRAMES")
+        if self.train_steps < 1 or self.max_gaussians < 1:
+            raise ConfigError("TRAIN_STEPS a MAX_GAUSSIANS musí být >= 1")
