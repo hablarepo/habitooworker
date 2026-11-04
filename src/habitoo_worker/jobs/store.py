@@ -33,3 +33,11 @@ class JobStore(ABC):
     @abstractmethod
     def status_counts(self) -> dict[str, int]:
         """Počet úloh podle stavu (pro scripts/queue_status.py)."""
+
+    @abstractmethod
+    def videos_to_purge(self, older_than_days: int) -> list[tuple[str, str]]:
+        """(job_id, video_path) úloh "hotovo"/"nepovedlo se" dokončených před více než N dny a bez smazaného videa."""
+
+    @abstractmethod
+    def mark_video_deleted(self, job_id: str) -> None:
+        """Zapíše, že původní video bylo smazáno."""

@@ -26,6 +26,8 @@ class _Row:
     failure_reason: str | None = None
     failure_detail: str | None = None
     result: JobResult | None = None
+    finished_at: float | None = None
+    video_deleted: bool = False
 
 
 class FakeJobStore(JobStore):
@@ -71,6 +73,7 @@ class FakeJobStore(JobStore):
                 if row.attempts >= max_attempts:
                     row.status = STATUS_FAILED
                     row.failure_reason = FAIL_TIMEOUT
+                    row.finished_at = now
                     failed += 1
                 else:
                     row.status = STATUS_PENDING
@@ -89,6 +92,7 @@ class FakeJobStore(JobStore):
             row = self._own(job_id)
             row.status = STATUS_DONE
             row.result = result
+            row.finished_at = self._clock()
 
     def mark_failed(self, job_id: str, reason: str, detail: str = "") -> None:
         with self._lock:
@@ -96,6 +100,7 @@ class FakeJobStore(JobStore):
             row.status = STATUS_FAILED
             row.failure_reason = reason
             row.failure_detail = detail
+            row.finished_at = self._clock()
 
     def status_counts(self) -> dict[str, int]:
         with self._lock:
@@ -103,3 +108,14 @@ class FakeJobStore(JobStore):
             for r in self._rows.values():
                 counts[r.status] += 1
             return counts
+
+    def videos_to_purge(self, older_than_days: int) -> list[tuple[str, str]]:
+        cutoff = self._clock() - older_than_days * 86400
+        with self._lock:
+            return [(r.id, r.video_path) for r in self._rows.values()
+                    if r.status in (STATUS_DONE, STATUS_FAILED) and not r.video_deleted
+                    and r.finished_at is not None and r.finished_at <= cutoff]
+
+    def mark_video_deleted(self, job_id: str) -> None:
+        with self._lock:
+            self._rows[job_id].video_deleted = True
