@@ -1,0 +1,33 @@
+# Spuštění: docker compose up -d --build   (nebo scripts/run_worker.ps1)
+# Tajemství jsou v lokálním souboru .env (není v repu ani v obrazu), viz .env.example.
+name: habitoo-worker
+
+services:
+  worker:
+    build:
+      context: .
+      args:
+        CUDA_ARCHS: "7.5+PTX"
+    image: habitoo-worker:local
+    env_file: .env
+    restart: unless-stopped
+    stop_grace_period: 30s
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    volumes:
+      - work:/work              # dočasné soubory úloh (worker je maže sám)
+      - ./samples:/samples:ro   # vzorová videa pro ruční test (scripts/run_local.py)
+      - ./out:/out              # výstup ručního testu
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+volumes:
+  work:
